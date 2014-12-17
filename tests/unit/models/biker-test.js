@@ -85,3 +85,33 @@ test('creates a record', function() {
     });
   });
 });
+
+test('updates a record', function() {
+  server = new Pretender(function() {
+    this.put('/orchestrate/bikers/035ab997adffe604', function(request) {
+      var json = JSON.parse(request.requestBody);
+      deepEqual(json, { name: 'Steven' }, 'PUTs correct JSON');
+      return [201, {
+        'location': '/v0/bikers/035ab997adffe604/refs/82eafab14dc84ed3'
+      }, {}];
+    });
+  });
+
+  var store = this.store();
+
+  return Ember.run(function() {
+    store.push('biker', {
+      id: '035ab997adffe604',
+      name: 'Steve'
+    });
+
+    return store.find('biker', '035ab997adffe604').then(function(biker) {
+      biker.set('name', 'Steven');
+      return biker.save().then(function(biker) {
+        ok(biker, 'record updated');
+        ok(biker.get('id'), '035ab997adffe604', 'record loaded');
+        equal(biker.get('name'), 'Steven', 'record attribute was updated');
+      });
+    });
+  });
+});

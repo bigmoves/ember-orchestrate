@@ -45,7 +45,9 @@ export default DS.RESTAdapter.extend({
           var headers = adapter.get('parsedHeaders');
           var parts = headers.location.split('/');
           var json = {
-            path: { key: parts[3] },
+            path: {
+              key: parts[3]
+            },
             value: data
           };
 
@@ -80,9 +82,13 @@ export default DS.RESTAdapter.extend({
         .then(function() {
           var headers = adapter.get('parsedHeaders');
           var parts = headers.location.split('/');
-          data.id = parts[3];
-
-          resolve(data);
+          var json = {
+            path: {
+              key: parts[3]
+            },
+            value: data
+          };
+          resolve(json);
         });
     });
   },
