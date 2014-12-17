@@ -1,3 +1,6 @@
+[![Build
+Status](https://travis-ci.org/chadtmiller/ember-orchestrate-adapter.svg?branch=master)](https://travis-ci.org/chadtmiller/ember-orchestrate-adapter)
+
 # Ember-orchestrate-adapter
 
 This README outlines the details of collaborating on this Ember addon.
