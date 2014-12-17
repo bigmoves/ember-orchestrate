@@ -58,8 +58,16 @@ export default DS.RESTSerializer.extend({
   normalizeRelationships: function(type, hash) {
     hash.links = {};
 
-    type.eachRelationship(function(key) {
-      hash.links[key] = pluralize(type.typeKey)+'/'+hash.id+'/relations/'+key;
+    type.eachRelationship(function(key, relationship) {
+      // bike = { type: 'fixie', links: { biker: 'bikes/bikeId/relations/biker' } }
+      if (relationship.kind === 'belongsTo') {
+        hash.links[key] = pluralize(type.typeKey)+'/'+hash.id+'/relations/'+key;
+      }
+
+      // biker = { name: 'Steve', links: { bikes: 'biker/bikeId/relations/bikes' } }
+      if (relationship.kind === 'hasMany') {
+        hash.links[key] = pluralize(type.typeKey)+'/'+hash.id+'/relations/'+pluralize(key);
+      }
     });
   }
 

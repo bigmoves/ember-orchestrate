@@ -28,8 +28,7 @@ test('biker#hasMany bikes loads bikes', function() {
         },
         value: {
           name: 'Steve'
-        },
-        reftime: 1418783651788
+        }
       }];
     });
 
@@ -42,16 +41,14 @@ test('biker#hasMany bikes loads bikes', function() {
           },
           value: {
             type: 'road'
-          },
-          reftime: 1418783651788
+          }
         }, {
           path: {
             key: 'bike-2',
           },
           value: {
             type: 'fixie'
-          },
-          reftime: 1418783651788
+          }
         }]
       }];
     });
@@ -70,7 +67,6 @@ test('biker#hasMany bikes loads bikes', function() {
     }).then(function(bikes) {
       ok(bikes, 'gets bikes');
       equal(bikes.get('length'), 2, 'has 2 bikes');
-
       var bike = bikes.get('firstObject');
       equal(bike.get('id'), 'bike-1');
       equal(bike.get('type'), 'road');

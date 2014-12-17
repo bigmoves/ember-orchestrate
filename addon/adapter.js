@@ -56,8 +56,10 @@ export default DS.RESTAdapter.extend({
               var parentCollection = pluralize(key);
               var parentKey = get(record, key+'.id');
               var kind = pluralize(type.typeKey);
-              var url = adapter.buildURL(parentCollection+'/'+parentKey+'/relation/'+kind);
-              promises.push(adapter.ajax(url, 'PUT'));
+              var relateToUrl = adapter.buildURL(parentCollection+'/'+parentKey+'/relation/'+kind);
+              var relateFromUrl = adapter.buildURL(kind+'/'+json.path.key+'/relation/'+type.typeKey);
+              promises.push(adapter.ajax(relateToUrl, 'PUT'));
+              promises.push(adapter.ajax(relateFromUrl, 'PUT'));
             }
           });
 
@@ -93,11 +95,17 @@ export default DS.RESTAdapter.extend({
     });
   },
 
-  findHasMany: function(store, record, url, relationship) {
-    //var id   = get(record, 'id');
-    //var type = record.constructor.typeKey;
+  findBelongsTo: function(store, record, url, relationship) {
+    var adapter = this;
+    return new Promise(function(resolve) {
+      adapter.ajax(adapter.urlPrefix()+'/'+url, 'GET').then(function(data) {
+        resolve(data.results[0]);
+      });
+    });
+  },
 
-    return this.ajax(this.buildURL(url), 'GET');
+  findHasMany: function(store, record, url, relationship) {
+    return this.ajax(this.urlPrefix()+'/'+url, 'GET');
   },
 
   ajaxError: function(jqXHR, responseText, errorThrown) {
