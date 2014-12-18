@@ -56,8 +56,8 @@ export default DS.RESTAdapter.extend({
               var parentCollection = pluralize(key);
               var parentKey = get(record, key+'.id');
               var kind = pluralize(type.typeKey);
-              var relateToUrl = adapter.buildURL(parentCollection+'/'+parentKey+'/relation/'+kind);
-              var relateFromUrl = adapter.buildURL(kind+'/'+json.path.key+'/relation/'+type.typeKey);
+              var relateToUrl = adapter.urlPrefix()+'/'+parentCollection+'/'+parentKey+'/relation/'+kind+'/'+kind+'/'+json.path.key;
+              var relateFromUrl = adapter.urlPrefix()+'/'+kind+'/'+json.path.key+'/relation/'+key+'/'+parentCollection+'/'+parentKey;
               promises.push(adapter.ajax(relateToUrl, 'PUT'));
               promises.push(adapter.ajax(relateFromUrl, 'PUT'));
             }
