@@ -19,7 +19,7 @@ moduleForModel('biker', 'Biker model', {
 
 test('loads a collection', function() {
   server = new Pretender(function() {
-    this.get('orchestrate/bikers', function() {
+    this.get('orchestrate/v0/bikers', function() {
       return [200, {}, {
         count: 1,
         results: [{
@@ -43,7 +43,7 @@ test('loads a collection', function() {
 
 test('loads a single record', function() {
   server = new Pretender(function() {
-    this.get('/orchestrate/bikers/1', function() {
+    this.get('/orchestrate/v0/bikers/1', function() {
       return [200, {}, {
         name: 'Steve'
       }];
@@ -63,7 +63,7 @@ test('loads a single record', function() {
 
 test('creates a record', function() {
   server = new Pretender(function() {
-    this.post('/orchestrate/bikers', function(request) {
+    this.post('/orchestrate/v0/bikers', function(request) {
       var json = JSON.parse(request.requestBody);
       deepEqual(json, { name: 'Steve' }, 'POSTs correct JSON');
       return [201, {
@@ -88,7 +88,7 @@ test('creates a record', function() {
 
 test('updates a record', function() {
   server = new Pretender(function() {
-    this.put('/orchestrate/bikers/035ab997adffe604', function(request) {
+    this.put('/orchestrate/v0/bikers/035ab997adffe604', function(request) {
       var json = JSON.parse(request.requestBody);
       deepEqual(json, { name: 'Steven' }, 'PUTs correct JSON');
       return [201, {

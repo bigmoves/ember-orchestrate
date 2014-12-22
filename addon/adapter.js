@@ -8,13 +8,15 @@ var pluralize = Ember.String.pluralize;
 export default DS.RESTAdapter.extend({
   host: '/orchestrate',
 
+  namespace: 'v0',
+
   apiKey: null,
 
   headers: function() {
     return {
       'Authorization': 'Basic ' + this.get('apiKey')
     };
-  }.property('apiKey'),
+  }.property('apiKey').volatile(),
 
   find: function(store, type, id, record) {
     var adapter = this;
@@ -39,34 +41,37 @@ export default DS.RESTAdapter.extend({
     serializer.serializeIntoHash(data, type, record, { includeId: true });
 
     return new Promise(function(resolve) {
-      adapter.ajax(adapter.buildURL(type.typeKey, null, record), 'POST', { data: data })
-        .then(function() {
-          var promises = [];
-          var headers = adapter.get('parsedHeaders');
-          var parts = headers.location.split('/');
-          var json = {
-            path: {
-              key: parts[3]
-            },
-            value: data
-          };
+      adapter.ajax(adapter.buildURL(type.typeKey, null, record), 'POST', {
+        data: data
+      }).then(function() {
+        var promises = [];
+        var headers = adapter.get('parsedHeaders');
+        var parts = headers.location.split('/');
+        var json = {
+          path: {
+            key: parts[3]
+          },
+          value: data
+        };
 
-          type.eachRelationship(function(key, relationship) {
-            if (relationship.kind === 'belongsTo') {
-              var parentCollection = pluralize(key);
-              var parentKey = get(record, key+'.id');
-              var kind = pluralize(type.typeKey);
-              var relateToUrl = adapter.urlPrefix()+'/'+parentCollection+'/'+parentKey+'/relation/'+kind+'/'+kind+'/'+json.path.key;
-              var relateFromUrl = adapter.urlPrefix()+'/'+kind+'/'+json.path.key+'/relation/'+key+'/'+parentCollection+'/'+parentKey;
-              promises.push(adapter.ajax(relateToUrl, 'PUT'));
-              promises.push(adapter.ajax(relateFromUrl, 'PUT'));
-            }
-          });
+        type.eachRelationship(function(key, relationship) {
+          var relationshipType = record.constructor.determineRelationshipType(relationship);
 
-          return Ember.RSVP.all(promises).then(function() {
-            return resolve(json);
-          });
+          if (relationshipType === 'oneToNone') {
+            promises.push(adapter.graphOneToNone(type, record, json, relationship));
+          } else if (relationshipType === 'oneToMany') {
+            promises.push(adapter.graphOneToMany(type, record, json, relationship));
+          } else if (relationshipType === 'manyToMany') {
+            promises.push(adapter.graphManyToMany(type, record, json, relationship));
+          }
+
+          // Todo: support manyToNone
         });
+
+        return Ember.RSVP.all(promises).then(function() {
+          return resolve(json);
+        });
+      });
     });
   },
 
@@ -80,19 +85,95 @@ export default DS.RESTAdapter.extend({
     var id = get(record, 'id');
 
     return new Promise(function(resolve) {
-      adapter.ajax(adapter.buildURL(type.typeKey, id, record), 'PUT', { data: data })
-        .then(function() {
-          var headers = adapter.get('parsedHeaders');
-          var parts = headers.location.split('/');
-          var json = {
-            path: {
-              key: parts[3]
-            },
-            value: data
-          };
-          resolve(json);
-        });
+      adapter.ajax(adapter.buildURL(type.typeKey, id, record), 'PUT', {
+        data: data
+      }).then(function() {
+        var headers = adapter.get('parsedHeaders');
+        var parts = headers.location.split('/');
+        var json = {
+          path: {
+            key: parts[3]
+          },
+          value: data
+        };
+        resolve(json);
+      });
     });
+  },
+
+  deleteRecord: function(store, type, record) {
+    var id = get(record, 'id');
+
+    return this.ajax(this.buildURL(type.typeKey, id, record)+'?purge=true', 'DELETE');
+  },
+
+  // deletes the relation for both sides of a many-to-many relationship
+  deleteRelation: function(store, type, record, relationship) {
+    var id = get(record, 'id');
+    var inverseKey = relationship.inverseKey;
+    var inverseId = get(relationship, 'record.id');
+    var collection = pluralize(inverseKey);
+    var promises = [];
+
+    promises.push(this.ajax(this.buildURL(type.typeKey, id, record)+'/relation/'+inverseKey+'/'+collection+'/'+inverseId+'?purge=true', 'DELETE'));
+    promises.push(this.ajax(this.urlPrefix()+'/'+collection+'/'+inverseId+'/relation/'+pluralize(type.typeKey)+'/'+pluralize(type.typeKey)+'/'+id+'?purge=true', 'DELETE'));
+
+    return Ember.RSVP.all(promises);
+  },
+
+  graphOneToNone: function(type, record, json, relationship) {
+    var key = relationship.key;
+    var collection = pluralize(key);
+    var kind = pluralize(type.typeKey);
+    var belongsTo = get(record, key);
+    var belongsToId = get(belongsTo, 'id');
+    var urlPrefix = this.urlPrefix();
+
+    var oneToNoneUrl = urlPrefix+'/'+kind+'/'+json.path.key+'/relation/'+key+'/'+collection+'/'+belongsToId;
+
+    return Ember.RSVP.resolve(this.ajax(oneToNoneUrl, 'PUT'));
+  },
+
+  graphOneToMany: function(type, record, json, relationship) {
+    var key = relationship.key;
+    var collection = pluralize(key);
+    var kind = pluralize(type.typeKey);
+    var belongsTo = get(record, key);
+    var belongsToId = get(belongsTo, 'id');
+    var urlPrefix = this.urlPrefix();
+    var promises = [];
+
+    // /comments/commentID/relation/post/posts/postId
+    var belongsToUrl = urlPrefix+'/'+kind+'/'+json.path.key+'/relation/'+key+'/'+collection+'/'+belongsToId;
+    promises.push(this.ajax(belongsToUrl, 'PUT'));
+
+    // /posts/postId/relation/comments/comments/commentId
+    var hasManyUrl = urlPrefix+'/'+collection+'/'+belongsToId+'/relation/'+kind+'/'+kind+'/'+json.path.key;
+    promises.push(this.ajax(hasManyUrl, 'PUT'));
+
+    return Ember.RSVP.all(promises);
+  },
+
+  graphManyToMany: function(type, record, json, relationship) {
+    var adapter = this;
+    var key = relationship.key;
+    var collection = pluralize(key);
+    var kind = pluralize(type.typeKey);
+    var hasManyIds = get(record, key).mapBy('id');
+    var urlPrefix = this.urlPrefix();
+    var promises = [];
+
+    hasManyIds.forEach(function(id) {
+      // /tags/tagId/relation/posts/posts/postId
+      var hasManyFromUrl = urlPrefix+'/'+kind+'/'+json.path.key+'/relation/'+collection+'/'+collection+'/'+id;
+      promises.push(adapter.ajax(hasManyFromUrl, 'PUT'));
+
+      // /posts/postId/relation/tags/tags/tagId
+      var hasManyToUrl = urlPrefix+'/'+collection+'/'+id+'/relation/'+kind+'/'+kind+'/'+json.path.key;
+      promises.push(adapter.ajax(hasManyToUrl, 'PUT'));
+    });
+
+    return Ember.RSVP.all(promises);
   },
 
   findBelongsTo: function(store, record, url, relationship) {
@@ -105,7 +186,21 @@ export default DS.RESTAdapter.extend({
   },
 
   findHasMany: function(store, record, url, relationship) {
-    return this.ajax(this.urlPrefix()+'/'+url, 'GET');
+    var adapter = this;
+    var query = { limit: 10 };
+
+    return new Promise(function(resolve) {
+      adapter.ajax(adapter.urlPrefix()+'/'+url, 'GET', {
+        data: query
+      }).then(function(data) {
+          var meta = {};
+          meta[get(record, 'id')] = {
+            next: data.next && data.next.slice(3)
+          };
+          store.metaForType(relationship.type.typeKey, meta);
+          resolve(data);
+        });
+    });
   },
 
   ajaxError: function(jqXHR, responseText, errorThrown) {

@@ -37,9 +37,15 @@ export default DS.RESTSerializer.extend({
   serialize: function(record, options) {
     var json = {};
 
-    record.eachAttribute(function(name) {
-      json[name] = record.get(name);
-    });
+    record.eachAttribute(function(key, attribute) {
+      this.serializeAttribute(record, json, key, attribute);
+    }, this);
+
+    record.eachRelationship(function(key, relationship) {
+      if (relationship.kind === 'belongsTo') {
+        this.serializeBelongsTo(record, json, relationship);
+      }
+    }, this);
 
     return json;
   },
@@ -53,6 +59,10 @@ export default DS.RESTSerializer.extend({
     }
 
     return this._super(type, json, property);
+  },
+
+  normalizePayload: function(payload) {
+    return payload;
   },
 
   normalizeRelationships: function(type, hash) {
