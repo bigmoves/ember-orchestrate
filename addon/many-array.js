@@ -18,12 +18,13 @@ export default Ember.Mixin.create({
     }
 
     return new Promise(function(resolve) {
-      adapter.ajax(adapter.urlPrefix()+metaForRecord.next, 'GET').then(function(data) {
-        var storePayload = {};
-        storePayload[pluralize(type.typeKey)] = data.results;
-        store.pushPayload(type.typeKey, storePayload);
-        resolve(array);
-      });
+      adapter.ajax(adapter.urlPrefix()+metaForRecord.next, 'GET')
+        .then(function(data) {
+          var storePayload = {};
+          storePayload[pluralize(type.typeKey)] = data.results;
+          store.pushPayload(type.typeKey, storePayload);
+          resolve(array);
+        });
     });
   },
 
@@ -34,8 +35,9 @@ export default Ember.Mixin.create({
     var relationship = get(this, 'relationship');
     var adapter = store.adapterFor(type.typeKey);
 
-    return adapter.deleteRelation(store, type, record, relationship).then(function() {
-      array.removeObject(record);
-    });
+    return adapter.deleteRelation(store, type, record, relationship)
+      .then(function() {
+        array.removeObject(record);
+      });
   }
 });

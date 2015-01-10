@@ -28,6 +28,11 @@ export default DS.RESTSerializer.extend({
       store.metaForType(type, { total: payload.total_count });
       delete payload.total_count;
     }
+
+    if (payload && payload.next) {
+      store.metaForType(type, { next: payload.next });
+      delete payload.total_count;
+    }
   },
 
   serializeIntoHash: function(hash, type, record, options) {
@@ -41,11 +46,8 @@ export default DS.RESTSerializer.extend({
       this.serializeAttribute(record, json, key, attribute);
     }, this);
 
-    record.eachRelationship(function(key, relationship) {
-      if (relationship.kind === 'belongsTo') {
-        this.serializeBelongsTo(record, json, relationship);
-      }
-    }, this);
+    delete json.timestamp;
+    delete json.ordinal;
 
     return json;
   },
@@ -53,30 +55,37 @@ export default DS.RESTSerializer.extend({
   normalize: function(type, hash, property) {
     var json = {};
 
+    // key/value
     if (hash.path && hash.value) {
       json = hash.value;
       json.id = hash.path.key;
     }
 
-    return this._super(type, json, property);
-  },
+    // event
+    if (hash.timestamp) {
+      json.id = hash.timestamp;
+      json.timestamp = hash.timestamp;
+      json.ordinal = hash.path.ordinal_str;
+    }
 
-  normalizePayload: function(payload) {
-    return payload;
+    return this._super(type, json, property);
   },
 
   normalizeRelationships: function(type, hash) {
     hash.links = {};
 
     type.eachRelationship(function(key, relationship) {
-      // bike = { type: 'fixie', links: { biker: 'bikes/bikeId/relations/biker' } }
       if (relationship.kind === 'belongsTo') {
         hash.links[key] = pluralize(type.typeKey)+'/'+hash.id+'/relations/'+key;
       }
-
-      // biker = { name: 'Steve', links: { bikes: 'biker/bikeId/relations/bikes' } }
-      if (relationship.kind === 'hasMany') {
-        hash.links[key] = pluralize(type.typeKey)+'/'+hash.id+'/relations/'+pluralize(key);
+      else if (relationship.options.event && relationship.kind === 'hasMany') {
+        hash.links[key] = pluralize(type.typeKey)+'/'+hash.id+'/events/'+key;
+      }
+      else if (relationship.options.ref && relationship.kind === 'hasMany') {
+        hash.links[key] = pluralize(type.typeKey)+'/'+hash.id+'/refs/?values=true';
+      }
+      else if (relationship.kind === 'hasMany') {
+        hash.links[key] = pluralize(type.typeKey)+'/'+hash.id+'/relations/'+key;
       }
     });
   }
