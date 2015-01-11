@@ -14,8 +14,6 @@ var Promise = Ember.RSVP.Promise;
 var pluralize = Ember.String.pluralize;
 
 export default DS.RESTAdapter.extend({
-  host: '/orchestrate',
-
   namespace: 'v0',
 
   apiKey: null,
@@ -24,7 +22,7 @@ export default DS.RESTAdapter.extend({
 
   headers: function() {
     return {
-      'Authorization': 'Basic ' + this.get('apiKey')
+      'Authorization': 'Basic ' + window.btoa(this.get('apiKey'))
     };
   }.property('apiKey').volatile(),
 
@@ -72,7 +70,7 @@ export default DS.RESTAdapter.extend({
     }
 
     if (next) {
-      url = '/orchestrate'+next;
+      url = next;
     }
 
     this.ajax(url, 'GET', { data: query })
@@ -278,6 +276,19 @@ export default DS.RESTAdapter.extend({
         resolve(data);
       });
     });
+  },
+
+  urlPrefix: function() {
+    var host = get(this, 'host');
+    var namespace = get(this, 'namespace');
+    var url = [];
+
+    if (url.host) {
+      url.push(host);
+    }
+    url.push(namespace);
+
+    return url.join('/');
   },
 
   ajaxError: function(jqXHR, responseText, errorThrown) {
