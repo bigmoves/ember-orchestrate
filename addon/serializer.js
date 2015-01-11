@@ -30,7 +30,7 @@ export default DS.RESTSerializer.extend({
     }
 
     if (payload && payload.next) {
-      store.metaForType(type, { next: payload.next });
+      store.metaForType(type, { next: payload.next.slice(3) });
       delete payload.total_count;
     }
   },

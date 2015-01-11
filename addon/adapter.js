@@ -1,5 +1,12 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import ManyArrayMixin from './mixins/many-array';
+import RecordArrayMixin from './mixins/record-array';
+import PromiseArrayMixin from './mixins/promise-array';
+
+DS.PromiseArray.reopen(PromiseArrayMixin);
+DS.ManyArray.reopen(ManyArrayMixin);
+DS.RecordArray.reopen(RecordArrayMixin);
 
 var get = Ember.get;
 var set = Ember.set;
@@ -36,12 +43,21 @@ export default DS.RESTAdapter.extend({
     });
   },
 
-  queryCache: {},
+  findAll: function(store, type) {
+    var defaultLimit = get(this, 'defaultLimit');
+    var query = {
+      limit: defaultLimit
+    };
+
+    return this.ajax(this.buildURL(type.typeKey), 'GET', { data: query });
+  },
+
+  _queryCache: {},
 
   findQuery: function(store, type, query, recordArray, deferred, next) {
     var adapter = this;
     var url = this.buildURL(type.typeKey);
-    var queryCache = get(this, 'queryCache');
+    var queryCache = get(this, '_queryCache');
     var defaultLimit = get(this, 'defaultLimit');
 
     query = query || {};
