@@ -283,7 +283,7 @@ export default DS.RESTAdapter.extend({
     var namespace = get(this, 'namespace');
     var url = [];
 
-    if (url.host) {
+    if (host) {
       url.push(host);
     }
     url.push(namespace);
