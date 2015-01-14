@@ -15,45 +15,46 @@ Using this addon requires an Orchestrate.io account. You can
 From within your Ember CLI application run the command:
 
 ```bash
-npm install --save ember-orchestrate
+ember install:addon ember-orchestrate
 ```
 
-### Development
-
-Run the `ember server` command with the `--proxy` option, which will route all
-of the adapter requests to the Orchestrate.io API.
+which is equivalent to:
 
 ```bash
-ember server --proxy https://api.orchestrate.io
+npm install --save ember-orchestrate
+ember g ember-orchestrate
 ```
 
-Alternatively, you can add the proxy url to your `.ember-cli` configuration
-file to so that you don't have to type it out every time:
+The `ember-orchestrate` generator will install a node-http-proxy server which
+is required in order to make requests to the Orchestrate.io API. You will also
+need to set en environment variable with an api key provided from the
+Orchestrate.io dashboard.
 
-```javascript
-{
-  ...,
-  "proxy": "https://api.orchestrate.io"
-}
+```bash
+export ORCHESTRATE_API_KEY=...
 ```
 
-### Defining the adapter
+This is a quick way to setup up a development environment, however, in
+production you will need route requests to your own server. You can do this
+by simply changing the host address on the main Orchestrate adapter.
 
 ```javascript
 // app/adapters/application.js
 import OrchestrateAdapter from 'ember-orchestrate/adapter';
 
 export default OrchestrateAdapter.extend({
-  apiKey: 'Your api key'
+  host: 'http://your-api.com'
 });
 ```
 
-The provided `apiKey` will set the Orchestrate application the adapter
-interacts with.
-
-### Defining the serializer
+### Setting up the adapter and serializer
 
 ```javascript
+// app/adapters/application.js
+import OrchestrateAdapter from 'ember-orchestrate/adapter';
+
+export default OrchestrateAdapter.extend();
+
 // app/serializers/application.js
 import OrchestrateSerializer from 'ember-orchestrate/serializer';
 
@@ -97,9 +98,9 @@ export default OrchestrateSerializer.extend({
 
 ### Defining relationships
 
-The `Ember-Orchestrate-Adapter` currently supports `One-To-One`,
-`One-To-Many`, and `Many-To-Many` relationships using Orchestrate's
-graph API. For example, consider the following model definitions:
+`ember-orchestrate` currently supports `One-To-One`, `One-To-Many`, and
+`Many-To-Many` relationships using Orchestrate's graph API. For example,
+consider the following model definitions:
 
 ```javascript
 // app/models/post.js
@@ -135,9 +136,9 @@ comment.save();
 will make the these requests:
 
 ```
-=> POST https//api.orchestrate.io/v0/comments
-=> PUT https//api.orchestrate.io/v0/comments/07908e521720677f/relation/post/posts/071d7e029320fb45
-=> PUT https//api.orchestrate.io/v0/posts/071d7e029320fb45/relation/comments/comments/07908e521720677f
+=> POST orchestrate/v0/comments
+=> PUT orchestrate/v0/comments/07908e521720677f/relation/post/posts/071d7e029320fb45
+=> PUT orchestrate/v0/posts/071d7e029320fb45/relation/comments/comments/07908e521720677f
 ```
 
 #### Removing relationships
@@ -189,8 +190,8 @@ method will make recursive requests to load records up to the specified limit.
 ```javascript
 var posts = this.store.find('post', { limit: 200 }); // will make two requests
 
-// => GET https://api.orchestrate.io/v0/posts?limit=100
-// => GET https://api.orchestrate.io/v0/posts?limit=100&offset=100
+// => GET orchestrate/v0/posts?limit=100
+// => GET orchestrate/v0/posts?limit=100&offset=100
 ```
 
 #### Finding a single record

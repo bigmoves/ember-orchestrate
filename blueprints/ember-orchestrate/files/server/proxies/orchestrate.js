@@ -7,6 +7,8 @@ module.exports = function(app) {
   var path = require('path');
 
   app.use(proxyPath, function(req, res, next) {
+    var token = process.env.ORCHESTRATE_API_KEY;
+    req.headers.authorization = 'Basic ' + new Buffer(token).toString('base64');
     proxy.web(req, res, { target: 'https://api.orchestrate.io/' });
   });
 };
