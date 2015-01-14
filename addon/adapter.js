@@ -14,17 +14,11 @@ var Promise = Ember.RSVP.Promise;
 var pluralize = Ember.String.pluralize;
 
 export default DS.RESTAdapter.extend({
+  host: '/orchestrate',
+
   namespace: 'v0',
 
-  apiKey: null,
-
   defaultLimit: 100,
-
-  headers: function() {
-    return {
-      'Authorization': 'Basic ' + window.btoa(this.get('apiKey'))
-    };
-  }.property('apiKey').volatile(),
 
   find: function(store, type, id, record) {
     var adapter = this;
@@ -70,7 +64,7 @@ export default DS.RESTAdapter.extend({
     }
 
     if (next) {
-      url = next;
+      url = this.urlPrefix()+next;
     }
 
     this.ajax(url, 'GET', { data: query })

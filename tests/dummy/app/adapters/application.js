@@ -1,3 +1,3 @@
-import OrchestrateAdapter from 'ember-orchestrate-adapter/adapter';
+import OrchestrateAdapter from 'ember-orchestrate/adapter';
 
 export default OrchestrateAdapter.extend();

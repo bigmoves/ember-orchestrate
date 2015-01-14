@@ -21,7 +21,7 @@ test('biker#hasMany bikes loads bikes', function() {
   var store = this.store();
 
   server = new Pretender(function() {
-    this.get('/v0/bikers/1', function(request) {
+    this.get('/orchestrate/v0/bikers/1', function(request) {
       return [200, {}, {
         path: {
           key: '1',
@@ -32,7 +32,7 @@ test('biker#hasMany bikes loads bikes', function() {
       }];
     });
 
-    this.get('/v0/bikers/1/relations/bikes', function(request) {
+    this.get('/orchestrate/v0/bikers/1/relations/bikes', function(request) {
       return [200, {}, {
         count: 2,
         results: [{
