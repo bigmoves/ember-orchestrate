@@ -1,6 +1,6 @@
 {
   "name": "ember-orchestrate",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "An Ember Data adapter for Orchestrate.io.",
   "directories": {
     "doc": "doc",
