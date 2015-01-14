@@ -23,7 +23,7 @@ export default DS.RESTAdapter.extend({
   find: function(store, type, id, record) {
     var adapter = this;
 
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       adapter.ajax(adapter.buildURL(type.typeKey, id, record), 'GET')
         .then(function(data) {
           var json = {
@@ -31,6 +31,8 @@ export default DS.RESTAdapter.extend({
             value: data
           };
           resolve(json);
+        }, function(reason) {
+          reject(reason.responseJSON);
         });
     });
   },
@@ -98,7 +100,7 @@ export default DS.RESTAdapter.extend({
 
     serializer.serializeIntoHash(data, type, record, { includeId: true });
 
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       adapter.ajax(adapter.buildURL(type.typeKey, null, record), 'POST', {
         data: data
       }).then(function() {
@@ -128,6 +130,8 @@ export default DS.RESTAdapter.extend({
 
         return Ember.RSVP.all(promises).then(function() {
           return resolve(json);
+        }, function(reason) {
+          reject(reason.responseJSON);
         });
       });
     });
@@ -142,7 +146,7 @@ export default DS.RESTAdapter.extend({
 
     var id = get(record, 'id');
 
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       adapter.ajax(adapter.buildURL(type.typeKey, id, record), 'PUT', {
         data: data
       }).then(function() {
@@ -155,6 +159,8 @@ export default DS.RESTAdapter.extend({
           value: data
         };
         resolve(json);
+      }, function(reason) {
+        reject(reason.responseJSON);
       });
     });
   },
@@ -236,9 +242,11 @@ export default DS.RESTAdapter.extend({
 
   findBelongsTo: function(store, record, url, relationship) {
     var adapter = this;
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       adapter.ajax(adapter.urlPrefix()+'/'+url, 'GET').then(function(data) {
         resolve(data.results[0]);
+      }, function(reason) {
+        reject(reason.responseJSON);
       });
     });
   },
@@ -248,7 +256,7 @@ export default DS.RESTAdapter.extend({
     var defaultLimit = get(this, 'defaultLimit');
     var query = { limit: defaultLimit };
 
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       adapter.ajax(adapter.urlPrefix()+'/'+url, 'GET', {
         data: query
       }).then(function(data) {
@@ -268,6 +276,8 @@ export default DS.RESTAdapter.extend({
         }
 
         resolve(data);
+      }, function(reason) {
+        reject(reason.responseJSON);
       });
     });
   },

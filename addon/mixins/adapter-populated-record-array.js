@@ -1,5 +1,6 @@
 import Ember from 'ember';
 
+var Promise = Ember.RSVP.Promise;
 var get = Ember.get;
 var set = Ember.set;
 
@@ -30,23 +31,27 @@ export default Ember.Mixin.create({
       return;
     }
 
-    return adapter.ajax(adapter.urlPrefix()+meta.next, 'GET')
-      .then(function(adapterPayload) {
-        var meta = {
-          count: adapterPayload.count,
-          next: adapterPayload.next && adapterPayload.next.slice(3),
-          total: adapterPayload.total_count
-        };
-        var payload = serializer.extractArray(store, type, adapterPayload, null);
-        var records = store.pushMany(type, payload);
+    return new Promise(function(resolve, reject) {
+      adapter.ajax(adapter.urlPrefix()+meta.next, 'GET')
+        .then(function(adapterPayload) {
+          var meta = {
+            count: adapterPayload.count,
+            next: adapterPayload.next && adapterPayload.next.slice(3),
+            total: adapterPayload.total_count
+          };
+          var payload = serializer.extractArray(store, type, adapterPayload, null);
+          var records = store.pushMany(type, payload);
 
-        records.forEach(function(record) {
-          array.addObject(record);
+          records.forEach(function(record) {
+            array.addObject(record);
+          });
+
+          store.metaForType(type, meta);
+          set(array, 'meta', meta);
+          resolve(array);
+        }, function(reason) {
+          reject(reason.responseJSON);
         });
-
-        store.metaForType(type, meta);
-        set(array, 'meta', meta);
-        return array;
-      });
+    });
   }
 });

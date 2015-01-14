@@ -1,5 +1,6 @@
 import Ember from 'ember';
 
+var Promise = Ember.RSVP.Promise;
 var get = Ember.get;
 var set = Ember.set;
 
@@ -20,9 +21,14 @@ export default Ember.Mixin.create({
     var relationship = get(this, 'relationship');
     var adapter = store.adapterFor(type.typeKey);
 
-    return adapter.deleteRelation(store, type, record, relationship)
-      .then(function() {
-        array.removeObject(record);
-      });
+    return new Promise(function(resolve, reject) {
+      adapter.deleteRelation(store, type, record, relationship)
+        .then(function() {
+          array.removeObject(record);
+          resolve();
+        }, function(reason) {
+          reject(reason.responseJSON);
+        });
+    });
   }
 });
