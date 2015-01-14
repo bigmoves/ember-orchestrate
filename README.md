@@ -1,7 +1,5 @@
-[![Build
-Status](https://travis-ci.org/chadtmiller/ember-orchestrate-adapter.svg?branch=master)](https://travis-ci.org/chadtmiller/ember-orchestrate-adapter)
-
-# Ember-Orchestrate-Adapter
+Ember Orchestrate [![BuildStatus](https://travis-ci.org/chadtmiller/ember-orchestrate-adapter.svg?branch=master)](https://travis-ci.org/chadtmiller/ember-orchestrate-adapter)
+=================
 
 An Ember Data adapter for the [Orchestrate.io](https://orchestrate.io) API.
 
@@ -17,7 +15,7 @@ Using this addon requires an Orchestrate.io account. You can
 From within your Ember CLI application run the command:
 
 ```bash
-npm install --save ember-orchestrate-adapter
+npm install --save ember-orchestrate
 ```
 
 ### Development
@@ -32,8 +30,9 @@ ember server --proxy https://api.orchestrate.io
 Alternatively, you can add the proxy url to your `.ember-cli` configuration
 file to so that you don't have to type it out every time:
 
-```json
+```javascript
 {
+  ...,
   "proxy": "https://api.orchestrate.io"
 }
 ```
@@ -42,7 +41,7 @@ file to so that you don't have to type it out every time:
 
 ```javascript
 // app/adapters/application.js
-import OrchestrateAdapter from 'ember-orchestrate-adapter/adapter';
+import OrchestrateAdapter from 'ember-orchestrate/adapter';
 
 export default OrchestrateAdapter.extend({
   apiKey: 'Your api key'
@@ -56,7 +55,7 @@ interacts with.
 
 ```javascript
 // app/serializers/application.js
-import OrchestrateSerializer from 'ember-orchestrate-adapter/serializer';
+import OrchestrateSerializer from 'ember-orchestrate/serializer';
 
 export default OrchestrateSerializer.extend();
 ```
@@ -87,7 +86,7 @@ you can create a model-specific adapter:
 
 ```javascript
 // app/serializers/user.js
-import OrchestrateSerializer from 'ember-orchestrate-adapter/serializer';
+import OrchestrateSerializer from 'ember-orchestrate/serializer';
 
 export default OrchestrateSerializer.extend({
   pathForType () {

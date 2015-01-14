@@ -1,6 +1,7 @@
 {
-  "name": "ember-orchestrate-adapter",
-  "version": "0.0.0",
+  "name": "ember-orchestrate",
+  "version": "0.1.0",
+  "description": "An Ember Data adapter for Orchestrate.io.",
   "directories": {
     "doc": "doc",
     "test": "tests"
@@ -10,11 +11,11 @@
     "build": "ember build",
     "test": "ember test"
   },
-  "repository": "",
+  "repository": "https://github.com/chadtmiller/ember-orchestrate.git",
   "engines": {
     "node": ">= 0.10.0"
   },
-  "author": "",
+  "author": "Chad Miller <chadtmiller15@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "broccoli-asset-rev": "^1.0.0",
@@ -32,7 +33,6 @@
     "express": "^4.8.5",
     "glob": "^4.0.5"
   },
-  "description": "The default blueprint for ember-cli addons.",
   "keywords": [
     "ember-addon"
   ],
