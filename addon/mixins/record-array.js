@@ -10,7 +10,7 @@ export default Ember.Mixin.create({
   init: function() {
     this._super();
     var type = get(this, 'type');
-    var meta = this.store.metadataFor(type.typeKey);
+    var meta = this.store.metadataFor(type);
     set(this, 'meta', meta);
   },
 

@@ -1,12 +1,12 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 import ManyArrayMixin from './mixins/many-array';
-import AdapterPopulatedRecordArrayMixin from './mixins/adapter-populated-record-array';
+import RecordArrayMixin from './mixins/record-array';
 import PromiseArrayMixin from './mixins/promise-array';
 
 DS.PromiseArray.reopen(PromiseArrayMixin);
 DS.ManyArray.reopen(ManyArrayMixin);
-DS.AdapterPopulatedRecordArray.reopen(AdapterPopulatedRecordArrayMixin);
+DS.RecordArray.reopen(RecordArrayMixin);
 
 var get = Ember.get;
 var set = Ember.set;
