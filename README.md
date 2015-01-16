@@ -1,4 +1,7 @@
-Ember Orchestrate [![BuildStatus](https://travis-ci.org/chadtmiller/ember-orchestrate-adapter.svg?branch=master)](https://travis-ci.org/chadtmiller/ember-orchestrate-adapter)
+[![npm package](https://img.shields.io/npm/v/ember-orchestrate.svg?style=flat-square)](https://www.npmjs.org/package/ember-orchestrate)
+[![build status](https://img.shields.io/travis/chadtmiller/ember-orchestrate.svg?style=flat-square)](https://travis-ci.org/chadtmiller/ember-orchestrate)
+
+Ember Orchestrate
 =================
 
 An Ember Data adapter for the [Orchestrate.io](https://orchestrate.io) API.
