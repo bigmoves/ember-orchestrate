@@ -6,6 +6,8 @@ Ember Orchestrate
 
 An Ember Data adapter for the [Orchestrate.io](https://orchestrate.io) API.
 
+**Note: This is still a WIP. If you have any issues or questions, please add them [here](https://github.com/chadtmiller/ember-orchestrate/issues).**
+
 ## Getting Started with Orchestrate
 
 Using this addon requires an Orchestrate.io account. You can
