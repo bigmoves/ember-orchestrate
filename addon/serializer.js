@@ -46,6 +46,7 @@ export default DS.RESTSerializer.extend({
       this.serializeAttribute(record, json, key, attribute);
     }, this);
 
+    delete json.ref;
     delete json.timestamp;
     delete json.ordinal;
 
@@ -59,6 +60,7 @@ export default DS.RESTSerializer.extend({
     if (hash.path && hash.value) {
       json = hash.value;
       json.id = hash.path.key;
+      json.ref = hash.path.ref;
     }
 
     // event
