@@ -8,17 +8,27 @@ DS.PromiseArray.reopen(PromiseArrayMixin);
 DS.ManyArray.reopen(ManyArrayMixin);
 DS.RecordArray.reopen(RecordArrayMixin);
 
+DS.Model.reopen({
+  ref: DS.attr('string')
+});
+
 var get = Ember.get;
 var set = Ember.set;
 var Promise = Ember.RSVP.Promise;
 var pluralize = Ember.String.pluralize;
 
 export default DS.RESTAdapter.extend({
+  init: function() {
+    this._queryCache = {};
+  },
+
   host: '/orchestrate',
 
   namespace: 'v0',
 
   defaultLimit: 100,
+
+  usePatch: true,
 
   find: function(store, type, id, record) {
     var adapter = this;
@@ -45,8 +55,6 @@ export default DS.RESTAdapter.extend({
 
     return this.ajax(this.buildURL(type.typeKey), 'GET', { data: query });
   },
-
-  _queryCache: {},
 
   findQuery: function(store, type, query, recordArray, deferred, next) {
     var adapter = this;
@@ -141,20 +149,34 @@ export default DS.RESTAdapter.extend({
     var data = {};
     var serializer = store.serializerFor(type.typeKey);
     var adapter = this;
+    var method = 'PUT';
+    var patchData;
+
+    var headers = {
+      'If-Match': '"'+get(record, 'ref')+'"'
+    };
+
+    if (this.usePatch) {
+      patchData = get(record, '_inFlightAttributes');
+      method = 'PATCH';
+      headers['Content-Type'] = 'application/merge-patch+json';
+    }
 
     serializer.serializeIntoHash(data, type, record);
 
     var id = get(record, 'id');
 
     return new Promise(function(resolve, reject) {
-      adapter.ajax(adapter.buildURL(type.typeKey, id, record), 'PUT', {
-        data: data
+      adapter.ajax(adapter.buildURL(type.typeKey, id, record), method, {
+        headers: headers,
+        data: patchData || data
       }).then(function() {
         var headers = adapter.get('parsedHeaders');
         var parts = headers.location.split('/');
         var json = {
           path: {
-            key: parts[3]
+            key: parts[3],
+            ref: parts[5]
           },
           value: data
         };

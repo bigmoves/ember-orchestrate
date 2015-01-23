@@ -5,11 +5,15 @@ import {
 import Pretender from 'pretender';
 import Ember from 'ember';
 
+var store;
 var server;
 
 moduleForModel('biker', 'Biker model', {
   needs: ['model:bike', 'adapter:application', 'serializer:application'],
-  teardown: function(){
+  setup: function(container) {
+    container.lookup('adapter:application').set('usePatch', false);
+  },
+  teardown: function() {
     if (server) {
       server.shutdown();
       server = null;
