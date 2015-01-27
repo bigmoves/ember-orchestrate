@@ -49,18 +49,25 @@ export default DS.RESTAdapter.extend({
 
   _queryCache: {},
 
-  findQuery: function(store, type, query, recordArray, deferred, next) {
+  findQuery: function(store, type, query, recordArray, deferred, next, limit) {
     var adapter = this;
     var url = this.buildURL(type.typeKey);
     var queryCache = get(this, '_queryCache');
     var defaultLimit = get(this, 'defaultLimit');
 
+    limit = limit || query.limit;
+
     query = query || {};
     query = {
       query: query.query || '*',
-      limit: query.limit || defaultLimit,
       sort: query.sort || 'key'
     };
+
+    if (limit > 100) {
+      query.limit = 100;
+    } else {
+      query.limit = limit || defaultLimit;
+    }
 
     if (!deferred) {
       deferred = Ember.RSVP.defer();
@@ -68,6 +75,7 @@ export default DS.RESTAdapter.extend({
 
     if (next) {
       url = this.urlPrefix()+next;
+      query = null;
     }
 
     this.ajax(url, 'GET', { data: query })
@@ -80,9 +88,9 @@ export default DS.RESTAdapter.extend({
           queryCache[type.typeKey].results.pushObjects(data.results);
         }
 
-        if (queryCache.count < query.limit &&
-            queryCache.count < queryCache.total_count) {
-          adapter.findQuery(store, type, query, recordArray, deferred, data.next);
+        if (queryCache[type.typeKey].count < limit &&
+            queryCache[type.typeKey].count < queryCache[type.typeKey].total_count) {
+          adapter.findQuery(store, type, query, recordArray, deferred, data.next.slice(3), limit);
         } else {
           deferred.resolve(queryCache[type.typeKey]);
           queryCache[type.typeKey] = null;
