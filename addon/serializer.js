@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import { setMeta } from './utils/meta';
 
 var pluralize = Ember.String.pluralize;
 
@@ -20,18 +21,18 @@ export default DS.RESTSerializer.extend({
 
   extractMeta: function(store, type, payload) {
     if (payload && payload.count) {
-      store.metaForType(type, { count: payload.count });
+      setMeta(store, type, { count: payload.count });
       delete payload.count;
     }
 
     if (payload && payload.total_count) {
-      store.metaForType(type, { total: payload.total_count });
+      setMeta(store, type, { total_count: payload.total_count });
       delete payload.total_count;
     }
 
     if (payload && payload.next) {
-      store.metaForType(type, { next: payload.next.slice(3) });
-      delete payload.total_count;
+      setMeta(store, type, { next: payload.next.slice(3) });
+      delete payload.next;
     }
   },
 

@@ -3,6 +3,7 @@ import DS from 'ember-data';
 import ManyArrayMixin from './mixins/many-array';
 import RecordArrayMixin from './mixins/record-array';
 import PromiseArrayMixin from './mixins/promise-array';
+import { setMeta } from './utils/meta';
 
 DS.PromiseArray.reopen(PromiseArrayMixin);
 DS.ManyArray.reopen(ManyArrayMixin);
@@ -264,7 +265,7 @@ export default DS.RESTAdapter.extend({
         meta[get(record, 'id')] = {
           next: data.next && data.next.slice(3)
         };
-        store.metaForType(relationship.type.typeKey, meta);
+        setMeta(store, relationship.type.typeKey, meta);
 
         // Can't have duplicate ids in the store so each ref needs to use its
         // ref id instead
